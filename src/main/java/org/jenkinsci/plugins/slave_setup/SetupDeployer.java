@@ -4,6 +4,7 @@ import hudson.*;
 import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
@@ -15,7 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -228,12 +231,27 @@ public class SetupDeployer {
 
     private EnvVars createEnvVarsForComputer(Computer c) {
         EnvVars additionalEnvironment = new EnvVars();
+        Map<String, String> buildVarMap = new HashMap();
         if (c != null) {
             additionalEnvironment.put("NODE_TO_SETUP_NAME", c.getName());
             Node node = c.getNode();
             if (node != null) {
                 additionalEnvironment.put("NODE_TO_SETUP_LABELS", Util.join(node.getAssignedLabels(), " "));
             }
+            // add all build parameters           
+            Run B = c.getBuilds().getLastBuild();
+            try {
+				EnvVars buildVars = B.getEnvironment(null);
+				buildVarMap = buildVars.descendingMap();
+	            //additionalEnvironment.put("IMAGE_ID", "nulli");
+	            additionalEnvironment.putAll(buildVarMap);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}            
         }
         return additionalEnvironment;
     }
