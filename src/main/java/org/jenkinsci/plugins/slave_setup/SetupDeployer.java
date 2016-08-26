@@ -4,11 +4,14 @@ import hudson.*;
 import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
 import hudson.util.LogTaskListener;
+import hudson.model.Queue.BuildableItem;
+import hudson.model.Queue.Item;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
@@ -241,17 +244,39 @@ public class SetupDeployer {
             // add all build parameters           
             Run B = c.getBuilds().getLastBuild();
             try {
-				EnvVars buildVars = B.getEnvironment(null);
-				buildVarMap = buildVars.descendingMap();
+            	//trial for getting latest build params
+				//EnvVars buildVars = B.getEnvironment(null);
+				//buildVarMap = buildVars.descendingMap();
 	            //additionalEnvironment.put("IMAGE_ID", "nulli");
-	            additionalEnvironment.putAll(buildVarMap);
-			} catch (IOException e) {
+            	//additionalEnvironment.putAll(buildVarMap);
+				
+				//test for queue item retrieve params
+	            List<BuildableItem> proj = Queue.getInstance().getBuildableItems(c);
+	            String params = proj.get(0).getParams();
+	            String[] splittedParams = params.split("\\s");
+	            String[] getParam;
+	            for (String param : splittedParams) {
+	            	getParam = param.split("=");
+	            	if (getParam.length < 2) {
+	            		continue;
+	            	}
+	            	additionalEnvironment.put(getParam[0].trim().toUpperCase(), getParam[1].trim());
+				}
+	            //additionalEnvironment.put("IMAGE_ID", params);
+	            
+            }
+            finally {
+            	
+            }
+/*			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}            
+			}
+*/
+            
         }
         return additionalEnvironment;
     }
