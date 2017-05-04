@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Computer;
@@ -20,7 +21,7 @@ public class ComputerListenerImpl extends ComputerListener {
     private SetupDeployer deployer = new SetupDeployer();
 
     @Override
-    public void preLaunch(Computer c, TaskListener listener) throws IOException, InterruptedException {
+    public void preLaunch(Computer c, TaskListener listener) throws IOException, InterruptedException, AbortException {
         listener.getLogger().println("just before slave " + c.getName() + " gets launched ...");
 
         SetupConfig config = SetupConfig.get();

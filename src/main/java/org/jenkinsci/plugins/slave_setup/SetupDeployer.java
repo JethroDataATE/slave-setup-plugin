@@ -217,10 +217,12 @@ public class SetupDeployer {
 
     private boolean executeScriptOnMaster(String script, Computer c, TaskListener listener) {
         // execute scripts on master relative to jenkins install dir
-        Node node = Jenkins.getInstance();
+    	boolean scriptExecuted = false;
+    	Node node = Jenkins.getInstance();
         FilePath filePath = node.getRootPath();
-
-        boolean scriptExecuted;
+        
+        if (c==null) { return true;}
+        
         try {
             executeScript(node, filePath, listener, script, createEnvVarsForComputer(c));
             scriptExecuted = true;

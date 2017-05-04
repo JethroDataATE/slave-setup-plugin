@@ -42,6 +42,11 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     private boolean deployNow;
 
     /**
+     * set to true to skip SSH salve startup and wait to remote slave intiate connection
+     */    
+    private boolean remoteStartAgent;
+    
+    /**
      * jenkins label to be assigned to this setup config
      */
     private String assignedLabelString;
@@ -56,12 +61,13 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String preLaunchScript, String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
+    public SetupConfigItem(String preLaunchScript, String prepareScript, File filesDir, String commandLine, boolean deployNow, boolean remoteStartAgent, String assignedLabelString) {
         this.preLaunchScript = preLaunchScript;
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
         this.deployNow = deployNow;
+        this.remoteStartAgent = remoteStartAgent;
         this.assignedLabelString = assignedLabelString;
     }
 
@@ -197,7 +203,15 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
         this.assignedLabelString = assignedLabelString;
     }
 
-    @Extension
+    public boolean isRemoteStartAgent() {
+		return remoteStartAgent;
+	}
+
+	public void setRemoteStartAgent(boolean remoteStartAgent) {
+		this.remoteStartAgent = remoteStartAgent;
+	}
+
+	@Extension
     public static class SetupConfigItemDescriptor extends Descriptor<SetupConfigItem> {
 
         @Override

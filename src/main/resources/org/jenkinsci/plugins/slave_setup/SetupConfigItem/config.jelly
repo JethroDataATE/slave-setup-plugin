@@ -20,6 +20,10 @@
              <f:entry title="deploy on save now" field="deployNow">
                  <f:checkbox />
              </f:entry>
+             
+             <f:entry title="Use agent remote start" field="remoteStartAgent">
+                 <f:checkbox />
+             </f:entry>
 
              <j:if test="${app.labels.size() gt 1 || app.clouds.size() gt 0}">
                  <f:entry title="${%Label Expression}" field="assignedLabelString">
