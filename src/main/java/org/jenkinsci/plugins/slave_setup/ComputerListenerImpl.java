@@ -25,9 +25,18 @@ public class ComputerListenerImpl extends ComputerListener {
         listener.getLogger().println("just before slave " + c.getName() + " gets launched ...");
 
         SetupConfig config = SetupConfig.get();
-
-        listener.getLogger().println("executing pre-launch scripts ...");
-        deployer.executePreLaunchScripts(c, config, listener);
+    	if (c.getChannel()!=null) {    		
+			try {
+				listener.getLogger().println("Skip pre-launch scripts since Channel is available");
+				if (c.getHostName() != null && !c.getHostName().isEmpty())					
+					listener.getLogger().println("Detected host from Channel (probably JNLP) : " + c.getHostName());
+			} catch (IOException e) {
+				listener.getLogger().println("Cannot fetch slave host name from channel even though its available");
+			}
+    	} else {
+            listener.getLogger().println("executing pre-launch scripts ...");
+            deployer.executePreLaunchScripts(c, config, listener);
+    	}
     }
 
     /**

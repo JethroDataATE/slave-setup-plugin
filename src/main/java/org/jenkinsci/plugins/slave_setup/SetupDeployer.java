@@ -90,15 +90,20 @@ public class SetupDeployer {
         if (checkLabels(c, setupConfigItem)) {
             // copy files
             File sd = setupConfigItem.getFilesDir();
-            if (sd != null && StringUtils.isNotBlank(sd.getPath())) {
-                listener.getLogger().println("Copying setup script files from " + sd);
-                new FilePath(sd).copyRecursiveTo(root);
+            File copyFlag = new File(root.getRemote() + "/copy.flag");
+            if (sd != null && StringUtils.isNotBlank(sd.getPath())) {                
+                if (copyFlag.exists()) {
+                	listener.getLogger().println("Skipping copy, copy.flag indication was found" + copyFlag);
+                } else {
+                	listener.getLogger().println("Copying setup script files from " + sd);
+                	new FilePath(sd).copyRecursiveTo(root);
+                }                                
             }
 
             // execute command line
             String cmdLine = setupConfigItem.getCommandLine();
-
-            executeScript(c.getNode(), root, listener, cmdLine, createEnvVarsForComputer(c));
+            listener.getLogger().println("Prepare to run after copy script ");
+            executeScript(c.getNode(), root, listener, cmdLine, createEnvVarsForComputer(c, false));
         } else {
             listener.getLogger().println("Slave " + c.getName() + " NOT set up as assigned label expression '" + setupConfigItem.getAssignedLabelString() + "' does not match with node label '" + c.getNode().getLabelString() + "'");
         }
@@ -133,6 +138,7 @@ public class SetupDeployer {
     }
 
     private void executeScript(Node node, FilePath root, TaskListener listener, String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
+    	listener.getLogger().println(StringUtils.isNotBlank(cmdLine) ? "not prepare script" : "prepare script is not emtpy");
         if (StringUtils.isNotBlank(cmdLine)) {
             String nodeName = node.getNodeName();
             listener.getLogger().println("Executing script '" + cmdLine + "' on " + (StringUtils.isEmpty(nodeName) ? "master" : nodeName));
@@ -224,7 +230,7 @@ public class SetupDeployer {
         if (c==null) { return true;}
         
         try {
-            executeScript(node, filePath, listener, script, createEnvVarsForComputer(c));
+            executeScript(node, filePath, listener, script, createEnvVarsForComputer(c, true));
             scriptExecuted = true;
         } catch (Exception e) {
             listener.getLogger().println("script failed with exception: " + e.getMessage());
@@ -234,7 +240,7 @@ public class SetupDeployer {
         return scriptExecuted;
     }
 
-    private EnvVars createEnvVarsForComputer(Computer c) {
+    private EnvVars createEnvVarsForComputer(Computer c, boolean setBuildEnv) {
         EnvVars additionalEnvironment = new EnvVars();
         Map<String, String> buildVarMap = new HashMap();
         if (c != null) {
@@ -242,6 +248,9 @@ public class SetupDeployer {
             Node node = c.getNode();
             if (node != null) {
                 additionalEnvironment.put("NODE_TO_SETUP_LABELS", Util.join(node.getAssignedLabels(), " "));
+            }
+            if (!setBuildEnv) {
+            	return additionalEnvironment;
             }
             // add all build parameters           
             Run B = c.getBuilds().getLastBuild();
