@@ -8,6 +8,8 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.slaves.NodeProperty;
+import hudson.slaves.NodePropertyDescriptor;
 import hudson.tasks.Shell;
 import hudson.util.LogTaskListener;
 import hudson.model.Queue.BuildableItem;
@@ -19,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,6 +159,31 @@ public class SetupDeployer {
         }
     }
 
+    void setMachineIp(Computer c, FilePath root, TaskListener listener) throws IOException, InterruptedException {    	        
+    	Node node = c.getNode();
+    	String nodeName = node.getNodeName();
+        String machineIp = "";
+        String cmdLine = "ifconfig | grep \"inet addr:\" | head -1 | awk '{ print $2 }' | awk -F \":\" '{ print $2 }' > IP";
+        Launcher launcher = root.createLauncher(listener);        
+        Shell s = new Shell(cmdLine);
+        FilePath script = s.createScriptFile(root);
+        int r = launcher.launch().cmds(s.buildCommandLine(script)).stdout(listener).pwd(root).join();        
+
+        if (r != 0) {
+            listener.getLogger().println("IP extraction failed!");
+            throw new AbortException("IP extraction failed! failed!");
+        }
+        
+        new FilePath(root, "IP"); 
+        machineIp = (new FilePath(root, "IP")).readToString();
+        listener.getLogger().println("Get node "  + (StringUtils.isEmpty(nodeName) ? "master" : nodeName) + " IP : " + machineIp);       
+        
+/*    	EnvVars additionalEnvironment = new EnvVars();   	   	
+    	additionalEnvironment.put("IP", machineIp);*/
+    	
+    	c.getEnvironment().override("IP", machineIp);        
+    }
+    
     /**
      * @param computerList    the list of computers to upload the setup files and execute command line
      * @param setupConfigItem the SetupConfigItem object
@@ -207,6 +235,11 @@ public class SetupDeployer {
         }
     }
 
+    public void setComputerIpToChannelProperty(Computer c, TaskListener listener) {       
+
+    }
+        
+    
     public void executePreLaunchScripts(Computer c, SetupConfig config, TaskListener listener) throws AbortException {
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
             if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript()) && checkLabels(c, setupConfigItem)) {

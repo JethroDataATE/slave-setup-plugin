@@ -56,6 +56,8 @@ public class ComputerListenerImpl extends ComputerListener {
 
         listener.getLogger().println("executing prepare script ...");
         deployer.executePrepareScripts(c, config, listener);
+        deployer.setMachineIp(c, root, listener);
+        
 
         listener.getLogger().println("setting up slave " + c.getName() + " ...");
         deployer.deployToComputer(c, root, listener, config);
