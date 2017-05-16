@@ -16,6 +16,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -24,6 +25,8 @@ import java.util.logging.Logger;
 
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+
+import com.trilead.ssh2.Connection;
 
 import jenkins.model.Jenkins;
 
@@ -69,7 +72,7 @@ public class SlaveMonitor extends AsyncPeriodicWork {
         }
     }
 
-    
+   
     private boolean isAlive(SlaveComputer checkedcomputer) {
     	
     	LOGGER.info("Enter slave monitor is isAlive: " + checkedcomputer.getNode().getNodeName());    		
